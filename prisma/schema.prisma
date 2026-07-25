@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Auth (email/password) ----------
+
+model User {
+  id           String        @id @default(cuid())
+  name         String?
+  email        String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  quizAttempts QuizAttempt[]
+}
+
+// ---------- Word content ----------
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Word {
+  id         String     @id @default(cuid())
+  word       String
+  definition String
+  topic      String
+  difficulty Difficulty
+  synonym    String?
+  antonym    String?
+  createdAt  DateTime   @default(now())
+
+  @@index([topic])
+  @@index([topic, difficulty])
+}
+
+// ---------- Quiz attempts ----------
+
+enum QuestionType {
+  WORD_TO_DEFINITION
+  DEFINITION_TO_WORD
+  SYNONYM_ANTONYM
+}
+
+model QuizAttempt {
+  id        String       @id @default(cuid())
+  userId    String
+  topic     String
+  length    Int
+  score     Int
+  createdAt DateTime     @default(now())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers   QuizAnswer[]
+
+  @@index([userId, createdAt])
+  @@index([userId, topic])
+}
+
+model QuizAnswer {
+  id            String       @id @default(cuid())
+  quizAttemptId String
+  wordId        String
+  questionType  QuestionType
+  promptText    String
+  correctText   String
+  selectedText  String
+  isCorrect     Boolean
+  orderIndex    Int
+  quizAttempt   QuizAttempt  @relation(fields: [quizAttemptId], references: [id], onDelete: Cascade)
+
+  @@index([quizAttemptId])
+}
