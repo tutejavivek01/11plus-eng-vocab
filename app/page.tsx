@@ -14,11 +14,11 @@ export default async function Home() {
 
     return (
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-6 md:flex-row md:items-start">
-        <div className="flex-1">
+        <div className="w-full md:w-1/4">
           <h1 className="mb-4 text-2xl font-bold">11+ Vocabulary Quiz</h1>
           <TopicSummaryChart summaries={summaries} />
         </div>
-        <div className="flex w-full flex-col gap-4 text-center md:w-64">
+        <div className="flex w-full flex-1 flex-col gap-4 rounded border border-black/[.08] p-6 text-center dark:border-white/[.145]">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             Signed in as {session.user.name ?? session.user.email}
           </p>

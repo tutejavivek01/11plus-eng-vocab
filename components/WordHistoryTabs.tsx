@@ -13,7 +13,10 @@ export function WordHistoryTabs({ tabs }: { tabs: WordHistoryTab[] }) {
 
   return (
     <div>
-      <div className="flex flex-wrap gap-2 border-b border-black/[.08] dark:border-white/[.145]" role="tablist">
+      <div
+        className="flex flex-nowrap gap-2 overflow-x-auto border-b border-black/[.08] dark:border-white/[.145]"
+        role="tablist"
+      >
         {tabs.map((tab) => (
           <button
             key={tab.value}
@@ -21,7 +24,7 @@ export function WordHistoryTabs({ tabs }: { tabs: WordHistoryTab[] }) {
             role="tab"
             aria-selected={tab.value === active}
             onClick={() => setActive(tab.value)}
-            className={`px-3 py-2 text-sm font-medium ${
+            className={`whitespace-nowrap px-3 py-2 text-sm font-medium ${
               tab.value === active
                 ? "border-b-2 border-foreground"
                 : "text-zinc-500 hover:text-foreground"

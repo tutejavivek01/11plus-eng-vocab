@@ -69,7 +69,7 @@ export default async function HistoryPage() {
   });
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 p-6">
+    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-6">
       <h1 className="text-2xl font-semibold">Progress history</h1>
       <StatsPanel stats={stats} />
       <section>

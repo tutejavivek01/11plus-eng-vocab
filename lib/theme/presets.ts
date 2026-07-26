@@ -3,6 +3,9 @@ export interface BackgroundPreset {
   label: string;
   light: string;
   dark: string;
+  // When set, this preset forces both background and text color unconditionally
+  // (ignoring the OS light/dark preference) — used for the fixed "Dark" theme.
+  foreground?: string;
 }
 
 export const BACKGROUND_PRESETS: BackgroundPreset[] = [
@@ -13,6 +16,7 @@ export const BACKGROUND_PRESETS: BackgroundPreset[] = [
   { key: "blush", label: "Blush", light: "#fdecef", dark: "#3a1e24" },
   { key: "sand", label: "Sand", light: "#f7f1e3", dark: "#332b1a" },
   { key: "slate", label: "Slate", light: "#eef1f4", dark: "#1b2226" },
+  { key: "dark", label: "Dark", light: "#2b2b2b", dark: "#2b2b2b", foreground: "#f2f2f2" },
 ];
 
 export const BACKGROUND_PRESET_KEYS = BACKGROUND_PRESETS.map((p) => p.key);

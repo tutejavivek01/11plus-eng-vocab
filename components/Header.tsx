@@ -6,7 +6,7 @@ export async function Header() {
   const session = await getServerSession(authOptions);
 
   return (
-    <header className="border-b border-black/[.08] dark:border-white/[.145]">
+    <header className="border-b border-black/[.08] bg-black/[.04] dark:border-white/[.145] dark:bg-black/[.2]">
       <div className="mx-auto flex w-full max-w-md items-center justify-between px-6 py-4">
         <Link href="/" className="font-semibold">
           11+ Vocab
