@@ -53,10 +53,13 @@ function parseCsv(text: string): string[][] {
   return rows;
 }
 
+const PLACEHOLDER_VALUES = new Set(["n/a", "na", "none", "-"]);
+
 function firstValue(cell: string | undefined): string | null {
   if (!cell) return null;
   const first = cell.split(",")[0].trim();
-  return first === "" ? null : first;
+  if (first === "" || PLACEHOLDER_VALUES.has(first.toLowerCase())) return null;
+  return first;
 }
 
 async function main() {
