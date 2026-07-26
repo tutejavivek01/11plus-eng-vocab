@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { QuestionCard } from "@/components/QuestionCard";
 import { ScoreSummary } from "@/components/ScoreSummary";
 import { MissedQuestionsReview } from "@/components/MissedQuestionsReview";
+import { QuizProgressSmilies, type AnswerStatus } from "@/components/QuizProgressSmilies";
 import type { GeneratedQuestion, QuestionType, Variant } from "@/lib/quiz/generateQuiz";
 import { ALLOWED_QUIZ_LENGTHS, TOPICS, type QuizLength, type Topic } from "@/lib/quiz/constants";
 
@@ -14,6 +15,7 @@ interface AnsweredQuestion {
   variant?: Variant;
   prompt: string;
   selectedText: string;
+  isCorrect: boolean;
 }
 
 export interface SubmitResultAnswer {
@@ -95,6 +97,7 @@ export function QuizPlayClient() {
           variant: question.variant,
           prompt: question.prompt,
           selectedText: option,
+          isCorrect: data.isCorrect,
         },
       ]);
     } catch (e) {
@@ -163,6 +166,9 @@ export function QuizPlayClient() {
   }
 
   const question = questions[currentIndex];
+  const smileyStatuses: AnswerStatus[] = Array.from({ length: questions.length }, (_, i) =>
+    answers[i] === undefined ? "unanswered" : answers[i].isCorrect ? "correct" : "incorrect"
+  );
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 p-6">
@@ -175,6 +181,7 @@ export function QuizPlayClient() {
         feedback={feedback}
         onSelect={handleSelect}
       />
+      <QuizProgressSmilies statuses={smileyStatuses} />
       {feedback && (
         <button
           type="button"

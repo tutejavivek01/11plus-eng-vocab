@@ -26,10 +26,6 @@ export default async function Home() {
           >
             Progress history
           </Link>
-          {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- NextAuth API route, not an app page */}
-          <a href="/api/auth/signout" className="text-sm text-zinc-500 underline">
-            Sign out
-          </a>
         </div>
       ) : (
         <div className="flex w-full flex-col gap-4">
