@@ -11,6 +11,7 @@ import { ConfidenceMeter } from "@/components/ConfidenceMeter";
 import { WordHistoryTable, type WordHistoryRow } from "@/components/WordHistoryTable";
 import { SpellingHistoryTable, type SpellingHistoryRow } from "@/components/SpellingHistoryTable";
 import { WordHistoryTabs } from "@/components/WordHistoryTabs";
+import { FixedTestAttemptList } from "@/components/FixedTestAttemptList";
 
 export default async function HistoryPage() {
   const session = await getServerSession(authOptions);
@@ -21,9 +22,21 @@ export default async function HistoryPage() {
   const userId = session.user.id;
 
   const attempts = await prisma.quizAttempt.findMany({
-    where: { userId },
+    where: { userId, fixedTestId: null },
     orderBy: { createdAt: "desc" },
     select: { id: true, topic: true, length: true, score: true, createdAt: true },
+  });
+
+  const fixedTestAttempts = await prisma.quizAttempt.findMany({
+    where: { userId, fixedTestId: { not: null } },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      length: true,
+      score: true,
+      createdAt: true,
+      fixedTest: { select: { number: true } },
+    },
   });
 
   const stats = computeHistoryStats(attempts);
@@ -109,6 +122,10 @@ export default async function HistoryPage() {
       <section>
         <h2 className="mb-3 text-lg font-semibold">Recent attempts</h2>
         <AttemptList attempts={attempts} />
+      </section>
+      <section>
+        <h2 className="mb-3 text-lg font-semibold">Practice tests</h2>
+        <FixedTestAttemptList attempts={fixedTestAttempts} />
       </section>
     </main>
   );

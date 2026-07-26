@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { ScoreSummary } from "@/components/ScoreSummary";
 import { MissedQuestionsReview } from "@/components/MissedQuestionsReview";
 import { TOPICS } from "@/lib/quiz/constants";
+import { formatTestName } from "@/lib/quiz/fixedTests";
 
 function topicLabel(topic: string): string {
   return TOPICS.find((t) => t.value === topic)?.label ?? topic;
@@ -20,12 +21,17 @@ export default async function HistoryAttemptPage({ params }: { params: Promise<{
   const { id } = await params;
   const attempt = await prisma.quizAttempt.findUnique({
     where: { id },
-    include: { answers: { orderBy: { orderIndex: "asc" } } },
+    include: {
+      answers: { orderBy: { orderIndex: "asc" } },
+      fixedTest: { select: { number: true } },
+    },
   });
 
   if (!attempt || attempt.userId !== session.user.id) {
     notFound();
   }
+
+  const heading = attempt.fixedTest ? formatTestName(attempt.fixedTest.number) : topicLabel(attempt.topic);
 
   const missed = attempt.answers
     .filter((a) => !a.isCorrect)
@@ -42,7 +48,7 @@ export default async function HistoryAttemptPage({ params }: { params: Promise<{
         <Link href="/history" className="text-sm text-zinc-500 underline">
           Back to history
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold">{topicLabel(attempt.topic)}</h1>
+        <h1 className="mt-2 text-2xl font-semibold">{heading}</h1>
         <p className="text-sm text-zinc-500">{new Date(attempt.createdAt).toLocaleString()}</p>
       </div>
       <ScoreSummary score={attempt.score} length={attempt.length} />

@@ -16,6 +16,9 @@ export async function Header() {
             <Link href="/history" className="text-sm text-zinc-600 dark:text-zinc-400">
               History
             </Link>
+            <Link href="/practice-tests" className="text-sm text-zinc-600 dark:text-zinc-400">
+              Practice Tests
+            </Link>
             <Link href="/settings" className="text-sm text-zinc-600 dark:text-zinc-400">
               Settings
             </Link>

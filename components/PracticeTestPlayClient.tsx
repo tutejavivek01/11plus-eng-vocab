@@ -1,28 +1,16 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { QuestionCard } from "@/components/QuestionCard";
 import { SpellingQuestionCard } from "@/components/SpellingQuestionCard";
 import { ScoreSummary } from "@/components/ScoreSummary";
 import { MissedQuestionsReview } from "@/components/MissedQuestionsReview";
 import { QuizProgressSmilies, type AnswerStatus } from "@/components/QuizProgressSmilies";
-import {
-  useQuizPlaySession,
-  type AnsweredQuestion,
-  type SubmitResult,
-} from "@/components/useQuizPlaySession";
-import { ALLOWED_QUIZ_LENGTHS, TOPICS, type QuizLength, type Topic } from "@/lib/quiz/constants";
+import { useQuizPlaySession, type AnsweredQuestion, type SubmitResult } from "@/components/useQuizPlaySession";
+import { formatTestName } from "@/lib/quiz/fixedTests";
 
-function isValidSetup(topic: string | null, length: number): topic is Topic {
-  return Boolean(topic) && TOPICS.some((t) => t.value === topic) && ALLOWED_QUIZ_LENGTHS.includes(length as QuizLength);
-}
-
-export function QuizPlayClient() {
-  const searchParams = useSearchParams();
+export function PracticeTestPlayClient({ number }: { number: number }) {
   const router = useRouter();
-  const topic = searchParams.get("topic");
-  const length = Number(searchParams.get("length"));
-  const enabled = isValidSetup(topic, length);
 
   const {
     questions,
@@ -35,41 +23,33 @@ export function QuizPlayClient() {
     handleSelect,
     handleNext,
   } = useQuizPlaySession({
-    enabled,
-    invalidSetupMessage: "Invalid quiz setup. Please go back and choose a topic and length.",
+    enabled: true,
     fetchQuestions: async () => {
-      const res = await fetch("/api/quiz/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, length }),
-      });
+      const res = await fetch(`/api/practice-tests/${number}`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to generate quiz");
+      if (!res.ok) throw new Error(data.error ?? "Failed to load test");
       return data.questions;
     },
     checkAnswer: async (question, selectedText) => {
-      const res = await fetch("/api/quiz/check-answer", {
+      const res = await fetch(`/api/practice-tests/${number}/check-answer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          wordId: question.wordId,
-          questionType: question.questionType,
-          variant: question.variant,
-          selectedText,
-        }),
+        body: JSON.stringify({ fixedTestQuestionId: question.wordId, selectedText }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to check answer");
       return { isCorrect: data.isCorrect, correctText: data.correctText, explanation: data.explanation };
     },
     submit: async (answers: AnsweredQuestion[]): Promise<SubmitResult> => {
-      const res = await fetch("/api/quiz/submit", {
+      const res = await fetch(`/api/practice-tests/${number}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, length, answers }),
+        body: JSON.stringify({
+          answers: answers.map((a) => ({ fixedTestQuestionId: a.wordId, selectedText: a.selectedText })),
+        }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to submit quiz");
+      if (!res.ok) throw new Error(data.error ?? "Failed to submit test");
       return data;
     },
   });
@@ -86,14 +66,15 @@ export function QuizPlayClient() {
     const missed = submitResult.results.filter((r) => !r.isCorrect);
     return (
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 p-6">
+        <h1 className="text-center text-lg font-semibold">{formatTestName(number)}</h1>
         <ScoreSummary score={submitResult.score} length={submitResult.length} />
         <MissedQuestionsReview missed={missed} />
         <button
           type="button"
-          onClick={() => router.push("/quiz/setup")}
+          onClick={() => router.push("/practice-tests")}
           className="w-full rounded-full bg-foreground px-5 py-3 font-medium text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
         >
-          Start another quiz
+          Back to Practice Tests
         </button>
       </main>
     );
@@ -102,7 +83,7 @@ export function QuizPlayClient() {
   if (!questions) {
     return (
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center p-6">
-        <p>Loading quiz...</p>
+        <p>Loading test...</p>
       </main>
     );
   }
@@ -115,7 +96,7 @@ export function QuizPlayClient() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 p-6">
       <p className="text-sm text-zinc-500">
-        Question {currentIndex + 1} of {questions.length}
+        {formatTestName(number)} — Question {currentIndex + 1} of {questions.length}
       </p>
       {question.questionType === "SPOT_MISSPELLING" ? (
         <SpellingQuestionCard

@@ -63,18 +63,59 @@ model SpellingQuestion {
   @@unique([sentence])
 }
 
+// ---------- Fixed practice tests ----------
+
+enum FixedTestBand {
+  EASY
+  MEDIUM
+  HARD
+  MIX
+}
+
+model FixedTest {
+  id        String              @id @default(cuid())
+  number    Int                 @unique // 1-48
+  band      FixedTestBand
+  createdAt DateTime            @default(now())
+  questions FixedTestQuestion[]
+  attempts  QuizAttempt[]
+
+  @@index([band])
+}
+
+model FixedTestQuestion {
+  id           String       @id @default(cuid())
+  fixedTestId  String
+  orderIndex   Int // 0-11, final on-screen order
+  // Word.id or SpellingQuestion.id this question was derived from — traceability only;
+  // copied into QuizAnswer.wordId at submit time, never used as the client-facing question id.
+  contentId    String
+  questionType QuestionType
+  prompt       String // fully baked
+  options      String[] // fully baked, fixed order — never reshuffled on read
+  correctText  String // fully baked, exact match against one entry in `options`
+  explanation  String? // baked from SpellingQuestion.explanation; null for vocab question types
+  fixedTest    FixedTest    @relation(fields: [fixedTestId], references: [id], onDelete: Cascade)
+
+  @@unique([fixedTestId, orderIndex])
+  @@index([fixedTestId])
+}
+
 model QuizAttempt {
-  id        String       @id @default(cuid())
-  userId    String
-  topic     String
-  length    Int
-  score     Int
-  createdAt DateTime     @default(now())
-  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  answers   QuizAnswer[]
+  id          String       @id @default(cuid())
+  userId      String
+  topic       String
+  length      Int
+  score       Int
+  createdAt   DateTime     @default(now())
+  fixedTestId String?
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fixedTest   FixedTest?   @relation(fields: [fixedTestId], references: [id], onDelete: SetNull)
+  answers     QuizAnswer[]
 
   @@index([userId, createdAt])
   @@index([userId, topic])
+  @@index([userId, fixedTestId])
 }
 
 model QuizAnswer {

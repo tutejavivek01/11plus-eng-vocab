@@ -99,7 +99,7 @@ export function computeConfidenceTier(percent: number | null): ConfidenceTier {
 
 export async function getUserAttemptHistory(userId: string): Promise<Map<string, TopicRollup>> {
   const attempts = await prisma.quizAttempt.findMany({
-    where: { userId },
+    where: { userId, fixedTestId: null },
     orderBy: { createdAt: "asc" },
     select: {
       id: true,
