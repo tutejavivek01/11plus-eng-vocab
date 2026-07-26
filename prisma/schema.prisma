@@ -12,12 +12,13 @@ datasource db {
 // ---------- Auth (email/password) ----------
 
 model User {
-  id           String        @id @default(cuid())
-  name         String?
-  email        String        @unique
-  passwordHash String
-  createdAt    DateTime      @default(now())
-  quizAttempts QuizAttempt[]
+  id              String        @id @default(cuid())
+  name            String?
+  email           String        @unique
+  passwordHash    String
+  createdAt       DateTime      @default(now())
+  backgroundColor String? // preset key, e.g. "sunrise"; null = default theme
+  quizAttempts    QuizAttempt[]
 }
 
 // ---------- Word content ----------
@@ -40,6 +41,7 @@ model Word {
 
   @@index([topic])
   @@index([topic, difficulty])
+  @@unique([word, topic])
 }
 
 // ---------- Quiz attempts ----------
@@ -67,6 +69,10 @@ model QuizAttempt {
 model QuizAnswer {
   id            String       @id @default(cuid())
   quizAttemptId String
+  // Intentionally not a relation to Word: Word rows can be deleted/recreated by
+  // prisma/seed.ts, and QuizAnswer already snapshots promptText/correctText/selectedText,
+  // so a missing Word join only loses enrichment (definition/synonym/antonym), not
+  // attempt-review correctness. Treat as a soft reference.
   wordId        String
   questionType  QuestionType
   promptText    String
@@ -77,4 +83,5 @@ model QuizAnswer {
   quizAttempt   QuizAttempt  @relation(fields: [quizAttemptId], references: [id], onDelete: Cascade)
 
   @@index([quizAttemptId])
+  @@index([wordId])
 }

@@ -133,7 +133,7 @@ async function main() {
   }
 
   console.log(`Parsed ${words.length} valid rows from ${csvPath}. Importing...`);
-  const result = await prisma.word.createMany({ data: words });
+  const result = await prisma.word.createMany({ data: words, skipDuplicates: true });
   console.log(`Inserted ${result.count} words.`);
 }
 

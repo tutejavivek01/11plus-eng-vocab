@@ -142,9 +142,19 @@ const generalVocabulary: SeedWord[] = [
 const WORDS: SeedWord[] = [...synonyms, ...antonyms, ...spellings, ...generalVocabulary];
 
 async function main() {
-  await prisma.word.deleteMany();
-  await prisma.word.createMany({ data: WORDS });
-  console.log(`Seeded ${WORDS.length} words.`);
+  for (const w of WORDS) {
+    await prisma.word.upsert({
+      where: { word_topic: { word: w.word, topic: w.topic } },
+      update: {
+        definition: w.definition,
+        difficulty: w.difficulty,
+        synonym: w.synonym,
+        antonym: w.antonym,
+      },
+      create: w,
+    });
+  }
+  console.log(`Seeded/updated ${WORDS.length} words.`);
 }
 
 main()

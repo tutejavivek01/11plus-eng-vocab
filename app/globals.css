@@ -19,6 +19,52 @@
   }
 }
 
+[data-bg-preset="sunrise"] {
+  --background: #fff4e6;
+}
+[data-bg-preset="mint"] {
+  --background: #e6f7f0;
+}
+[data-bg-preset="sky"] {
+  --background: #e8f3fc;
+}
+[data-bg-preset="lavender"] {
+  --background: #f1ecfa;
+}
+[data-bg-preset="blush"] {
+  --background: #fdecef;
+}
+[data-bg-preset="sand"] {
+  --background: #f7f1e3;
+}
+[data-bg-preset="slate"] {
+  --background: #eef1f4;
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-bg-preset="sunrise"] {
+    --background: #3a2a18;
+  }
+  [data-bg-preset="mint"] {
+    --background: #123326;
+  }
+  [data-bg-preset="sky"] {
+    --background: #122a3d;
+  }
+  [data-bg-preset="lavender"] {
+    --background: #2c2140;
+  }
+  [data-bg-preset="blush"] {
+    --background: #3a1e24;
+  }
+  [data-bg-preset="sand"] {
+    --background: #332b1a;
+  }
+  [data-bg-preset="slate"] {
+    --background: #1b2226;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

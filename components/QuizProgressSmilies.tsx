@@ -1,3 +1,5 @@
+import { CORRECT_CHIP_CLASS, INCORRECT_CHIP_CLASS } from "@/lib/ui/statusColors";
+
 export type AnswerStatus = "unanswered" | "correct" | "incorrect";
 
 interface QuizProgressSmiliesProps {
@@ -13,8 +15,8 @@ const EMOJI: Record<AnswerStatus, string> = {
 const CHIP_CLASS: Record<AnswerStatus, string> = {
   unanswered:
     "border-zinc-300 bg-zinc-100 text-zinc-400 grayscale dark:border-zinc-600 dark:bg-zinc-800",
-  correct: "border-green-500 bg-green-100 dark:bg-green-900/40",
-  incorrect: "border-red-500 bg-red-100 dark:bg-red-900/40",
+  correct: CORRECT_CHIP_CLASS,
+  incorrect: INCORRECT_CHIP_CLASS,
 };
 
 export function QuizProgressSmilies({ statuses }: QuizProgressSmiliesProps) {

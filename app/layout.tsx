@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/Header";
 import "./globals.css";
 
@@ -18,14 +21,23 @@ export const metadata: Metadata = {
   description: "Practice 11+ vocabulary with multiple-choice quizzes.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions);
+  const user = session?.user?.id
+    ? await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { backgroundColor: true },
+      })
+    : null;
+
   return (
     <html
       lang="en"
+      data-bg-preset={user?.backgroundColor ?? "default"}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">

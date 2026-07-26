@@ -13,6 +13,12 @@ export async function Header() {
         </Link>
         {session?.user && (
           <div className="flex items-center gap-3">
+            <Link href="/history" className="text-sm text-zinc-600 dark:text-zinc-400">
+              History
+            </Link>
+            <Link href="/settings" className="text-sm text-zinc-600 dark:text-zinc-400">
+              Settings
+            </Link>
             <span className="text-sm text-zinc-600 dark:text-zinc-400">
               {session.user.name ?? session.user.email}
             </span>
