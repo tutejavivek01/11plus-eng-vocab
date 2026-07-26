@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { QuestionCard } from "@/components/QuestionCard";
+import { SpellingQuestionCard } from "@/components/SpellingQuestionCard";
 import { ScoreSummary } from "@/components/ScoreSummary";
 import { MissedQuestionsReview } from "@/components/MissedQuestionsReview";
 import { QuizProgressSmilies, type AnswerStatus } from "@/components/QuizProgressSmilies";
@@ -16,6 +17,7 @@ interface AnsweredQuestion {
   prompt: string;
   selectedText: string;
   isCorrect: boolean;
+  explanation?: string;
 }
 
 export interface SubmitResultAnswer {
@@ -23,6 +25,7 @@ export interface SubmitResultAnswer {
   selectedText: string;
   correctText: string;
   isCorrect: boolean;
+  explanation?: string;
 }
 
 export interface SubmitResult {
@@ -48,7 +51,11 @@ export function QuizPlayClient() {
   );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<AnsweredQuestion[]>([]);
-  const [feedback, setFeedback] = useState<{ isCorrect: boolean; correctText: string } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    isCorrect: boolean;
+    correctText: string;
+    explanation?: string;
+  } | null>(null);
   const [checking, setChecking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null);
@@ -88,7 +95,7 @@ export function QuizPlayClient() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to check answer");
-      setFeedback({ isCorrect: data.isCorrect, correctText: data.correctText });
+      setFeedback({ isCorrect: data.isCorrect, correctText: data.correctText, explanation: data.explanation });
       setAnswers((prev) => [
         ...prev,
         {
@@ -98,6 +105,7 @@ export function QuizPlayClient() {
           prompt: question.prompt,
           selectedText: option,
           isCorrect: data.isCorrect,
+          explanation: data.explanation,
         },
       ]);
     } catch (e) {
@@ -175,12 +183,21 @@ export function QuizPlayClient() {
       <p className="text-sm text-zinc-500">
         Question {currentIndex + 1} of {questions.length}
       </p>
-      <QuestionCard
-        question={question}
-        selected={answers[currentIndex]?.selectedText ?? null}
-        feedback={feedback}
-        onSelect={handleSelect}
-      />
+      {question.questionType === "SPOT_MISSPELLING" ? (
+        <SpellingQuestionCard
+          question={question}
+          selected={answers[currentIndex]?.selectedText ?? null}
+          feedback={feedback}
+          onSelect={handleSelect}
+        />
+      ) : (
+        <QuestionCard
+          question={question}
+          selected={answers[currentIndex]?.selectedText ?? null}
+          feedback={feedback}
+          onSelect={handleSelect}
+        />
+      )}
       <QuizProgressSmilies statuses={smileyStatuses} />
       {feedback && (
         <button

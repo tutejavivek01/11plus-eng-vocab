@@ -29,7 +29,12 @@ export default async function HistoryAttemptPage({ params }: { params: Promise<{
 
   const missed = attempt.answers
     .filter((a) => !a.isCorrect)
-    .map((a) => ({ prompt: a.promptText, selectedText: a.selectedText, correctText: a.correctText }));
+    .map((a) => ({
+      prompt: a.promptText,
+      selectedText: a.selectedText,
+      correctText: a.correctText,
+      explanation: a.explanation ?? undefined,
+    }));
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 p-6">

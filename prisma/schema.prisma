@@ -50,6 +50,17 @@ enum QuestionType {
   WORD_TO_DEFINITION
   DEFINITION_TO_WORD
   SYNONYM_ANTONYM
+  SPOT_MISSPELLING
+}
+
+model SpellingQuestion {
+  id            String   @id @default(cuid())
+  sentence      String // raw sentence with inline [A]-[E] markers, e.g. "The goverment [A] decided..."
+  correctOption String // "A" | "B" | "C" | "D" | "E" ("E" = No error)
+  explanation   String
+  createdAt     DateTime @default(now())
+
+  @@unique([sentence])
 }
 
 model QuizAttempt {
@@ -69,10 +80,11 @@ model QuizAttempt {
 model QuizAnswer {
   id            String       @id @default(cuid())
   quizAttemptId String
-  // Intentionally not a relation to Word: Word rows can be deleted/recreated by
-  // prisma/seed.ts, and QuizAnswer already snapshots promptText/correctText/selectedText,
-  // so a missing Word join only loses enrichment (definition/synonym/antonym), not
-  // attempt-review correctness. Treat as a soft reference.
+  // Intentionally not a relation: wordId is a soft reference whose target table
+  // depends on questionType — Word.id for the vocab question types, SpellingQuestion.id
+  // for SPOT_MISSPELLING. Word rows can also be deleted/recreated by prisma/seed.ts, and
+  // QuizAnswer already snapshots promptText/correctText/selectedText, so a missing join
+  // only loses enrichment, not attempt-review correctness.
   wordId        String
   questionType  QuestionType
   promptText    String
@@ -80,6 +92,7 @@ model QuizAnswer {
   selectedText  String
   isCorrect     Boolean
   orderIndex    Int
+  explanation   String? // snapshotted explanation text; populated only for SPOT_MISSPELLING answers
   quizAttempt   QuizAttempt  @relation(fields: [quizAttemptId], references: [id], onDelete: Cascade)
 
   @@index([quizAttemptId])

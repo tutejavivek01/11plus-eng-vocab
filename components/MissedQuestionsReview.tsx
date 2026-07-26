@@ -2,6 +2,7 @@ interface MissedQuestion {
   prompt: string;
   selectedText: string;
   correctText: string;
+  explanation?: string;
 }
 
 interface MissedQuestionsReviewProps {
@@ -22,6 +23,9 @@ export function MissedQuestionsReview({ missed }: MissedQuestionsReviewProps) {
             <p className="mb-1">{q.prompt}</p>
             <p className="text-sm text-red-700 dark:text-red-400">Your answer: {q.selectedText}</p>
             <p className="text-sm text-green-700 dark:text-green-400">Correct answer: {q.correctText}</p>
+            {q.explanation && (
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{q.explanation}</p>
+            )}
           </li>
         ))}
       </ul>

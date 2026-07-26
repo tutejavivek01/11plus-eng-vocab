@@ -9,6 +9,7 @@ import { StatsPanel } from "@/components/StatsPanel";
 import { AttemptList } from "@/components/AttemptList";
 import { ConfidenceMeter } from "@/components/ConfidenceMeter";
 import { WordHistoryTable, type WordHistoryRow } from "@/components/WordHistoryTable";
+import { SpellingHistoryTable, type SpellingHistoryRow } from "@/components/SpellingHistoryTable";
 import { WordHistoryTabs } from "@/components/WordHistoryTabs";
 
 export default async function HistoryPage() {
@@ -28,9 +29,15 @@ export default async function HistoryPage() {
   const stats = computeHistoryStats(attempts);
 
   const rollups = await getUserAttemptHistory(userId);
-  const allWordIds = [...new Set([...rollups.values()].flatMap((r) => r.words.map((w) => w.wordId)))];
+  const wordTopicWordIds = [
+    ...new Set(
+      [...rollups.entries()]
+        .filter(([topic]) => topic !== "spellings")
+        .flatMap(([, r]) => r.words.map((w) => w.wordId))
+    ),
+  ];
   const words = await prisma.word.findMany({
-    where: { id: { in: allWordIds } },
+    where: { id: { in: wordTopicWordIds } },
     select: { id: true, word: true, definition: true, synonym: true, antonym: true, difficulty: true },
   });
   const wordById = new Map(words.map((w) => [w.id, w]));
@@ -39,6 +46,29 @@ export default async function HistoryPage() {
     const rollup = rollups.get(value);
     const percent = confidencePercent(rollup?.words ?? []);
     const tier = computeConfidenceTier(percent);
+
+    if (value === "spellings") {
+      const rows: SpellingHistoryRow[] = (rollup?.words ?? []).map((w) => ({
+        contentId: w.wordId,
+        sentence: w.lastPromptText,
+        lastSelectedText: w.lastSelectedText,
+        lastCorrectText: w.lastCorrectText,
+        lastCorrect: w.lastCorrect,
+        attemptCount: w.attemptCount,
+        lastExplanation: w.lastExplanation,
+      }));
+
+      return {
+        value,
+        label,
+        content: (
+          <div className="flex flex-col gap-4">
+            <ConfidenceMeter percent={percent} tier={tier} />
+            <SpellingHistoryTable rows={rows} />
+          </div>
+        ),
+      };
+    }
 
     const rows: WordHistoryRow[] = [];
     for (const w of rollup?.words ?? []) {

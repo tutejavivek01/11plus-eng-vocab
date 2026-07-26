@@ -20,4 +20,31 @@ describe("MissedQuestionsReview", () => {
     expect(screen.getByText(/Your answer: sad feeling/)).toBeInTheDocument();
     expect(screen.getByText(/Correct answer: feeling joy/)).toBeInTheDocument();
   });
+
+  it("renders the explanation when present", () => {
+    render(
+      <MissedQuestionsReview
+        missed={[
+          {
+            prompt: "The goverment [A] met. No error [B]",
+            selectedText: "B",
+            correctText: "A",
+            explanation: "Goverment is spelt incorrectly.",
+          },
+        ]}
+      />
+    );
+    expect(screen.getByText("Goverment is spelt incorrectly.")).toBeInTheDocument();
+  });
+
+  it("does not render an explanation line when it is absent", () => {
+    render(
+      <MissedQuestionsReview
+        missed={[
+          { prompt: "What does 'happy' mean?", selectedText: "sad feeling", correctText: "feeling joy" },
+        ]}
+      />
+    );
+    expect(screen.queryByText(/explanation/i)).not.toBeInTheDocument();
+  });
 });

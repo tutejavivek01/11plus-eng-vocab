@@ -2,7 +2,18 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { validateAnswers, UnknownWordError, type SubmittedAnswer } from "@/lib/quiz/validateAnswers";
+import {
+  validateAnswers,
+  UnknownWordError,
+  type AnswerResult,
+  type SubmittedAnswer,
+} from "@/lib/quiz/validateAnswers";
+import {
+  validateSpellingAnswers,
+  UnknownSpellingQuestionError,
+  type SpellingAnswerResult,
+  type SubmittedSpellingAnswer,
+} from "@/lib/quiz/validateSpellingAnswers";
 import { ALLOWED_QUIZ_LENGTHS, TOPICS, type QuizLength, type Topic } from "@/lib/quiz/constants";
 
 export async function POST(request: Request) {
@@ -26,22 +37,38 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Answers do not match quiz length" }, { status: 400 });
   }
 
-  const wordIds = answers.map((a) => a.wordId);
-  const words = await prisma.word.findMany({
-    where: { id: { in: wordIds } },
-    select: { id: true, word: true, definition: true, synonym: true, antonym: true },
-  });
+  const spellingAnswers = answers.filter(
+    (a): a is SubmittedSpellingAnswer => a.questionType === "SPOT_MISSPELLING"
+  );
+  const wordAnswers = answers.filter((a) => a.questionType !== "SPOT_MISSPELLING");
 
-  let score: number;
-  let results: ReturnType<typeof validateAnswers>["results"];
+  const [spellingQuestions, words] = await Promise.all([
+    spellingAnswers.length
+      ? prisma.spellingQuestion.findMany({ where: { id: { in: spellingAnswers.map((a) => a.wordId) } } })
+      : Promise.resolve([]),
+    wordAnswers.length
+      ? prisma.word.findMany({
+          where: { id: { in: wordAnswers.map((a) => a.wordId) } },
+          select: { id: true, word: true, definition: true, synonym: true, antonym: true },
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const resultsByWordId = new Map<string, AnswerResult | SpellingAnswerResult>();
   try {
-    ({ score, results } = validateAnswers(words, answers));
+    const { results: wordResults } = validateAnswers(words, wordAnswers);
+    for (const r of wordResults) resultsByWordId.set(r.wordId, r);
+    const { results: spellingResults } = validateSpellingAnswers(spellingQuestions, spellingAnswers);
+    for (const r of spellingResults) resultsByWordId.set(r.wordId, r);
   } catch (error) {
-    if (error instanceof UnknownWordError) {
+    if (error instanceof UnknownWordError || error instanceof UnknownSpellingQuestionError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     throw error;
   }
+
+  const results = answers.map((a) => resultsByWordId.get(a.wordId)!);
+  const score = results.filter((r) => r.isCorrect).length;
 
   const attempt = await prisma.quizAttempt.create({
     data: {
@@ -57,6 +84,7 @@ export async function POST(request: Request) {
           correctText: r.correctText,
           selectedText: r.selectedText,
           isCorrect: r.isCorrect,
+          explanation: "explanation" in r ? r.explanation : null,
           orderIndex: index,
         })),
       },

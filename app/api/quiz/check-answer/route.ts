@@ -20,6 +20,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
+  if (questionType === "SPOT_MISSPELLING") {
+    const spellingQuestion = await prisma.spellingQuestion.findUnique({ where: { id: wordId } });
+    if (!spellingQuestion) {
+      return NextResponse.json({ error: "Question not found" }, { status: 404 });
+    }
+    return NextResponse.json({
+      isCorrect: selectedText === spellingQuestion.correctOption,
+      correctText: spellingQuestion.correctOption,
+      explanation: spellingQuestion.explanation,
+    });
+  }
+
   const word = await prisma.word.findUnique({
     where: { id: wordId },
     select: { id: true, word: true, definition: true, synonym: true, antonym: true },

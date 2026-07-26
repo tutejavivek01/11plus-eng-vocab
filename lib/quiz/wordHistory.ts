@@ -4,6 +4,10 @@ export interface RawAnswerRow {
   wordId: string;
   isCorrect: boolean;
   orderIndex: number;
+  promptText: string;
+  selectedText: string;
+  correctText: string;
+  explanation: string | null;
 }
 
 export interface RawAttemptRow {
@@ -17,6 +21,10 @@ export interface WordAttemptSummary {
   wordId: string;
   attemptCount: number;
   lastCorrect: boolean;
+  lastPromptText: string;
+  lastSelectedText: string;
+  lastCorrectText: string;
+  lastExplanation: string | null;
 }
 
 export interface TopicRollup {
@@ -57,6 +65,10 @@ export function buildTopicRollups(attempts: RawAttemptRow[]): Map<string, TopicR
         wordId: answer.wordId,
         attemptCount: (existing?.attemptCount ?? 0) + 1,
         lastCorrect: answer.isCorrect,
+        lastPromptText: answer.promptText,
+        lastSelectedText: answer.selectedText,
+        lastCorrectText: answer.correctText,
+        lastExplanation: answer.explanation,
       });
     }
   }
@@ -94,7 +106,15 @@ export async function getUserAttemptHistory(userId: string): Promise<Map<string,
       topic: true,
       createdAt: true,
       answers: {
-        select: { wordId: true, isCorrect: true, orderIndex: true },
+        select: {
+          wordId: true,
+          isCorrect: true,
+          orderIndex: true,
+          promptText: true,
+          selectedText: true,
+          correctText: true,
+          explanation: true,
+        },
         orderBy: { orderIndex: "asc" },
       },
     },

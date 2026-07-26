@@ -3,15 +3,40 @@ import {
   buildTopicRollups,
   computeConfidenceTier,
   confidencePercent,
+  type RawAnswerRow,
   type RawAttemptRow,
+  type WordAttemptSummary,
 } from "./wordHistory";
+
+function wordSummary(wordId: string, lastCorrect: boolean): WordAttemptSummary {
+  return {
+    wordId,
+    attemptCount: 1,
+    lastCorrect,
+    lastPromptText: `prompt-${wordId}`,
+    lastSelectedText: "correct",
+    lastCorrectText: "correct",
+    lastExplanation: null,
+  };
+}
 
 function attempt(
   topic: string,
   createdAt: string,
-  answers: { wordId: string; isCorrect: boolean; orderIndex: number }[]
+  answers: Array<Pick<RawAnswerRow, "wordId" | "isCorrect" | "orderIndex"> & Partial<RawAnswerRow>>
 ): RawAttemptRow {
-  return { id: `${topic}-${createdAt}`, topic, createdAt: new Date(createdAt), answers };
+  return {
+    id: `${topic}-${createdAt}`,
+    topic,
+    createdAt: new Date(createdAt),
+    answers: answers.map((a) => ({
+      promptText: `prompt-${a.wordId}`,
+      selectedText: a.isCorrect ? "correct" : "wrong",
+      correctText: "correct",
+      explanation: null,
+      ...a,
+    })),
+  };
 }
 
 describe("buildTopicRollups", () => {
@@ -26,7 +51,48 @@ describe("buildTopicRollups", () => {
     const rollup = rollups.get("synonyms")!;
     expect(rollup.testsCount).toBe(1);
     expect(rollup.questionsCount).toBe(1);
-    expect(rollup.words).toEqual([{ wordId: "w1", attemptCount: 1, lastCorrect: true }]);
+    expect(rollup.words).toEqual([
+      {
+        wordId: "w1",
+        attemptCount: 1,
+        lastCorrect: true,
+        lastPromptText: "prompt-w1",
+        lastSelectedText: "correct",
+        lastCorrectText: "correct",
+        lastExplanation: null,
+      },
+    ]);
+  });
+
+  it("carries the last attempt's promptText/selectedText/correctText/explanation through", () => {
+    const rollups = buildTopicRollups([
+      attempt("spellings", "2026-01-01", [
+        {
+          wordId: "sq1",
+          isCorrect: true,
+          orderIndex: 0,
+          promptText: "The cat [A] sat. No error [B]",
+          selectedText: "B",
+          correctText: "B",
+          explanation: "All correct.",
+        },
+      ]),
+      attempt("spellings", "2026-01-02", [
+        {
+          wordId: "sq1",
+          isCorrect: false,
+          orderIndex: 0,
+          promptText: "The cat [A] sat. No error [B]",
+          selectedText: "A",
+          correctText: "B",
+          explanation: "All correct.",
+        },
+      ]),
+    ]);
+    const word = rollups.get("spellings")!.words.find((w) => w.wordId === "sq1")!;
+    expect(word.lastSelectedText).toBe("A");
+    expect(word.lastCorrectText).toBe("B");
+    expect(word.lastExplanation).toBe("All correct.");
   });
 
   it("uses the later attempt's result as the last status for a word answered across two attempts", () => {
@@ -89,21 +155,11 @@ describe("confidencePercent", () => {
   });
 
   it("returns 100 when every word's last attempt was correct", () => {
-    expect(
-      confidencePercent([
-        { wordId: "w1", attemptCount: 1, lastCorrect: true },
-        { wordId: "w2", attemptCount: 1, lastCorrect: true },
-      ])
-    ).toBe(100);
+    expect(confidencePercent([wordSummary("w1", true), wordSummary("w2", true)])).toBe(100);
   });
 
   it("computes the percent of distinct words whose last attempt was correct", () => {
-    expect(
-      confidencePercent([
-        { wordId: "w1", attemptCount: 1, lastCorrect: true },
-        { wordId: "w2", attemptCount: 1, lastCorrect: false },
-      ])
-    ).toBe(50);
+    expect(confidencePercent([wordSummary("w1", true), wordSummary("w2", false)])).toBe(50);
   });
 });
 

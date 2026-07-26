@@ -1,4 +1,8 @@
-export type QuestionType = "WORD_TO_DEFINITION" | "DEFINITION_TO_WORD" | "SYNONYM_ANTONYM";
+export type QuestionType =
+  | "WORD_TO_DEFINITION"
+  | "DEFINITION_TO_WORD"
+  | "SYNONYM_ANTONYM"
+  | "SPOT_MISSPELLING";
 export type Variant = "SYNONYM" | "ANTONYM";
 
 export interface WordRecord {
