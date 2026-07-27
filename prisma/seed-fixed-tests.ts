@@ -38,6 +38,7 @@ interface BakedQuestion {
   options: string[];
   correctText: string;
   explanation: string | null;
+  wordText: string | null;
 }
 
 function bakeVocabQuestions(subjects: WordRecord[], topicPool: WordRecord[]): BakedQuestion[] {
@@ -52,6 +53,7 @@ function bakeVocabQuestions(subjects: WordRecord[], topicPool: WordRecord[]): Ba
       options: q.options,
       correctText: getCorrectAnswer(subject, q.questionType, q.variant),
       explanation: null,
+      wordText: subject.word,
     };
   });
 }
@@ -66,6 +68,7 @@ function bakeSpellingQuestions(subjects: SpellingQuestionRecord[]): BakedQuestio
       options: q.options,
       correctText: sq.correctOption,
       explanation: sq.explanation,
+      wordText: null,
     };
   });
 }
@@ -146,6 +149,7 @@ async function main() {
             options: q.options,
             correctText: q.correctText,
             explanation: q.explanation,
+            wordText: q.wordText,
           })),
         },
       },

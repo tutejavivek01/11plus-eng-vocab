@@ -6,6 +6,7 @@ import { SpellingQuestionCard } from "@/components/SpellingQuestionCard";
 import { ScoreSummary } from "@/components/ScoreSummary";
 import { MissedQuestionsReview } from "@/components/MissedQuestionsReview";
 import { QuizProgressSmilies, type AnswerStatus } from "@/components/QuizProgressSmilies";
+import { WordMeaningPanel } from "@/components/WordMeaningPanel";
 import {
   useQuizPlaySession,
   type AnsweredQuestion,
@@ -113,35 +114,42 @@ export function QuizPlayClient() {
   );
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 p-6">
-      <p className="text-sm text-zinc-500">
-        Question {currentIndex + 1} of {questions.length}
-      </p>
-      {question.questionType === "SPOT_MISSPELLING" ? (
-        <SpellingQuestionCard
-          question={question}
-          selected={answers[currentIndex]?.selectedText ?? null}
-          feedback={feedback}
-          onSelect={handleSelect}
-        />
-      ) : (
-        <QuestionCard
-          question={question}
-          selected={answers[currentIndex]?.selectedText ?? null}
-          feedback={feedback}
-          onSelect={handleSelect}
-        />
-      )}
-      <QuizProgressSmilies statuses={smileyStatuses} />
-      {feedback && (
-        <button
-          type="button"
-          onClick={handleNext}
-          disabled={submitting}
-          className="w-full rounded-full bg-foreground px-5 py-3 font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-50 dark:hover:bg-[#ccc]"
-        >
-          {submitting ? "Submitting..." : currentIndex + 1 < questions.length ? "Next question" : "See results"}
-        </button>
+    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-6 md:flex-row md:items-start md:justify-center">
+      <div className="flex w-full max-w-md flex-1 flex-col justify-center gap-6">
+        <p className="text-sm text-zinc-500">
+          Question {currentIndex + 1} of {questions.length}
+        </p>
+        {question.questionType === "SPOT_MISSPELLING" ? (
+          <SpellingQuestionCard
+            question={question}
+            selected={answers[currentIndex]?.selectedText ?? null}
+            feedback={feedback}
+            onSelect={handleSelect}
+          />
+        ) : (
+          <QuestionCard
+            question={question}
+            selected={answers[currentIndex]?.selectedText ?? null}
+            feedback={feedback}
+            onSelect={handleSelect}
+          />
+        )}
+        <QuizProgressSmilies statuses={smileyStatuses} />
+        {feedback && (
+          <button
+            type="button"
+            onClick={handleNext}
+            disabled={submitting}
+            className="w-full rounded-full bg-foreground px-5 py-3 font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-50 dark:hover:bg-[#ccc]"
+          >
+            {submitting ? "Submitting..." : currentIndex + 1 < questions.length ? "Next question" : "See results"}
+          </button>
+        )}
+      </div>
+      {question.word && (
+        <div className="w-full md:w-72">
+          <WordMeaningPanel word={feedback ? question.word : null} />
+        </div>
       )}
     </main>
   );

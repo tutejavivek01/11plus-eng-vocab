@@ -30,6 +30,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ numb
     questionType: q.questionType,
     prompt: q.prompt,
     options: q.options,
+    word: q.wordText ?? undefined,
   }));
 
   return NextResponse.json({ number: test.number, band: test.band, questions });

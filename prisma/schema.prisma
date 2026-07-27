@@ -95,6 +95,7 @@ model FixedTestQuestion {
   options      String[] // fully baked, fixed order — never reshuffled on read
   correctText  String // fully baked, exact match against one entry in `options`
   explanation  String? // baked from SpellingQuestion.explanation; null for vocab question types
+  wordText     String? // the tested word, mirrors GeneratedQuestion.word; null for SPOT_MISSPELLING
   fixedTest    FixedTest    @relation(fields: [fixedTestId], references: [id], onDelete: Cascade)
 
   @@unique([fixedTestId, orderIndex])

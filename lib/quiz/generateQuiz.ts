@@ -19,6 +19,7 @@ export interface GeneratedQuestion {
   variant?: Variant;
   prompt: string;
   options: string[];
+  word?: string; // the actual tested word; absent for question types with no single word (spellings)
 }
 
 export class InsufficientWordsError extends Error {}
@@ -59,6 +60,7 @@ function buildWordToDefinition(subject: WordRecord, pool: WordRecord[]): Generat
     questionType: "WORD_TO_DEFINITION",
     prompt: `What does '${subject.word}' mean?`,
     options: shuffle([correct, ...distractors]),
+    word: subject.word,
   };
 }
 
@@ -72,6 +74,7 @@ function buildDefinitionToWord(subject: WordRecord, pool: WordRecord[]): Generat
     questionType: "DEFINITION_TO_WORD",
     prompt: `Which word matches this definition: "${subject.definition}"?`,
     options: shuffle([correct, ...distractors]),
+    word: subject.word,
   };
 }
 
@@ -99,6 +102,7 @@ function buildSynonymAntonym(subject: WordRecord, pool: WordRecord[]): Generated
         ? `Choose the synonym of '${subject.word}'.`
         : `Choose the antonym of '${subject.word}'.`,
     options: shuffle([correct, ...distractors]),
+    word: subject.word,
   };
 }
 

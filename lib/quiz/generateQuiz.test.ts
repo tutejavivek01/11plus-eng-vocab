@@ -74,4 +74,13 @@ describe("generateQuiz", () => {
       expect(q).not.toHaveProperty("correctIndex");
     }
   });
+
+  it("sets word to the subject's own word text for every question type", () => {
+    const pool = makePool(30);
+    const questions = generateQuiz(pool, 20);
+    for (const q of questions) {
+      const subject = pool.find((w) => w.id === q.wordId)!;
+      expect(q.word).toBe(subject.word);
+    }
+  });
 });
